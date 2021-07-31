@@ -162,8 +162,8 @@ class Theremin:
         for i in range(len(df)):
 
             if True: #df['Non-ClenchedTeeth'].values[i]:
-                amp_new = self.ampmapping_eeg(df['ABS(AF)SUM'].values[i])
-                freq_new = self.tonemapping_eeg(df['ABS(TP)SUM'].values[i])
+                amp_new = self.ampmapping_eeg(df[df.columns[1]].values[i])
+                freq_new = self.tonemapping_eeg(df[df.columns[2]].values[i])
                 print(freq_new, amp_new)
                 if instrument == 'sine':
 
@@ -207,13 +207,13 @@ class Theremin:
                 cumsum_amps = cumsum_amps[1:]
                 cumsum_freqs = cumsum_freqs[1:]
                 cumsum_amps.append(df[df.columns[1]].values[i])
-                cumsum_freqs.append(df['ABS(TP)SUM'].values[i])
+                cumsum_freqs.append(df[df.columns[2]].values[i])
                 if counter >= 5:
                     amp_new = self.ampmapping_eeg(np.array(cumsum_amps).mean())
                     freq_new = self.tonemapping_eeg(np.array(cumsum_freqs).mean())
                 else:
-                    amp_new = self.ampmapping_eeg(df['ABS(AF)SUM'].values[i])
-                    freq_new = self.tonemapping_eeg(df['ABS(TP)SUM'].values[i])
+                    amp_new = self.ampmapping_eeg(df[df.columns[1]].values[i])
+                    freq_new = self.tonemapping_eeg(df[df.columns[2]].values[i])
                 print(freq_new, amp_new)
                 if instrument == 'sine':
 
