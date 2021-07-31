@@ -23,6 +23,47 @@ class MusicMaker:
     def play_sound(self):
         pass
 
+    def play_audio(self):
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paFloat32,
+                        channels=1,
+                        rate=self.RATE,
+                        frames_per_buffer=self.CHUNK,
+                        output=True)
+        freq_old = self.minfreq
+        amp_old = self.minamp
+        phaze = 0
+
+        while True:
+            try:
+                if keyboard.is_pressed('q'):
+                    stream.close()
+                    break  # finishing the loop
+                else:
+                    freq_new = self.tonemapping()
+                    amp_new = self.ampmapping()
+                    if self.instrument == 'sine':
+
+                        tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new,
+                                                      self.infodict[self.instrument]['RATE'], self.infodict[self.instrument]['period'],
+                                                      phaze)
+                    elif self.instrument == 'fiddle1':
+                        tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+                                            self.infodict[self.instrument]['period'])
+                    elif self.instrument == 'fiddle2':
+                        tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+                                            self.infodict[self.instrument]['period'])
+                    elif self.instrument == 'trumpet':
+                        tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+                                            self.infodict[self.instrument]['period'])
+
+                    play_wave(stream, tone[0])
+                    freq_old = freq_new
+                    amp_old = amp_new
+                    phaze = tone[1]
+            except:
+                continue
+
     def testInstrument(self):
         pass
 
@@ -84,7 +125,7 @@ class Theremin(MusicMaker):
     def make_time_varying_sine(self, start_freq, end_freq, start_A, end_A, fs, sec, phaze_start):
         freqs = linspace(start_freq, end_freq, num=int(round(fs * sec)))
         A = linspace(start_A, end_A, num=int(round(fs * sec)))
-        phazes_diff = 2. * mpi * freqs / fs  # Amount of change in angular frequency
+        phazes_diff = 2. * pi * freqs / fs  # Amount of change in angular frequency
         phazes = cumsum(phazes_diff) + phaze_start  # phase
         phaze_last = phazes[-1]
         ret = A * sin(phazes)  # Sine wave synthesis
@@ -98,7 +139,7 @@ class Theremin(MusicMaker):
         df = pd.DataFrame({'randvals': np.random.rand(len(wave_data)), 'data': wave_data})
         df['newmask'] = df['randvals'] <= rem
         outdata = (df['data'][df['newmask']])
-        return (amp * np.array(outdata), -
+        return (amp * np.array(outdata), -1)
 
     def play_eegaudio(self, df):
         """
@@ -111,17 +152,17 @@ class Theremin(MusicMaker):
                         rate=self.RATE,
                         frames_per_buffer=self.CHUNK,
                         output=True)
-        freq_old = minfreq
-        amp_old = minamp
+        freq_old = self.minfreq
+        amp_old = self.minamp
         phaze = 0
 
         instrument = self.instrument
 
         for i in range(len(df)):
 
-            if df['Non-ClenchedTeeth'].values[i]:
-                amp_new = ampmapping_eeg(df['ABS(AF)SUM'].values[i])
-                freq_new = tonemapping_eeg(df['ABS(TP)SUM'].values[i])
+            if True: #df['Non-ClenchedTeeth'].values[i]:
+                amp_new = self.ampmapping_eeg(df['ABS(AF)SUM'].values[i])
+                freq_new = self.tonemapping_eeg(df['ABS(TP)SUM'].values[i])
                 print(freq_new, amp_new)
                 if instrument == 'sine':
 
