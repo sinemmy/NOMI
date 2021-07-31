@@ -166,14 +166,14 @@ class Theremin(MusicMaker):
                 print(freq_new, amp_new)
                 if instrument == 'sine':
 
-                    tone = make_time_varying_sine(freq_old, freq_new, amp_old, amp_new, infodict[instrument]['RATE'],
-                                                  infodict[instrument]['period'], phaze)
+                    tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new, self.infodict[instrument]['RATE'],
+                                                  self.infodict[instrument]['period'], phaze)
                 elif instrument == 'fiddle1':
                     tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
                                         self.infodict[instrument]['period'])
                 elif instrument == 'fiddle2':
-                    tone = varying_tone(fiddle2_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
                 elif instrument == 'trumpet':
                     tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
                                         self.infodict[instrument]['period'])
@@ -202,10 +202,10 @@ class Theremin(MusicMaker):
             cumsum_amps = [0, 0, 0, 0, 0]
             cumsum_freqs = [0, 0, 0, 0, 0]
 
-            if df['Non-ClenchedTeeth'].values[i]:
+            if True: #df['Non-ClenchedTeeth'].values[i]:
                 cumsum_amps = cumsum_amps[1:]
                 cumsum_freqs = cumsum_freqs[1:]
-                cumsum_amps.append(df['ABS(AF)SUM'].values[i])
+                cumsum_amps.append(df[df.columns[1]].values[i])
                 cumsum_freqs.append(df['ABS(TP)SUM'].values[i])
                 if counter >= 5:
                     amp_new = self.ampmapping_eeg(np.array(cumsum_amps).mean())
