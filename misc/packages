@@ -4,9 +4,11 @@ scipy
 PyQt5
 setuptools
 pyqt-tools
+pyqtgraph
 PyAutoGUI
 pandas
 matplotlib
 mne
 keyboard
 ray
+pylsl

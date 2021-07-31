@@ -8,6 +8,7 @@ from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
 from transmission import Comms as boardComm
 
+
 class DataThread(threading.Thread):
 
     def __init__(self, board: boardComm, boardID: int):
@@ -23,12 +24,26 @@ class DataThread(threading.Thread):
         win_size = 5
         sleeptime = 1
         points_per_update = win_size * self.samplingRate
+        print("length eeg channels: ",len(self.eeg_channels))
+        print(self.samplingRate)
         while self.keep_alive:
             time.sleep(sleeptime)
 
             # get the board data ; doesnt remove data from the internal buffer
             data = self.myBoard.getCurrentData(int(points_per_update))
-            print('DataShape %s :' % (str(data.shape)) + ' ' + str(type(data)))
+            print(data)
+            print('ppu: ',points_per_update)
+            reshape_data = data.T
+            print(reshape_data.shape, data.shape)
+
+            df = pd.DataFrame(reshape_data)
+            fft_data = np.fft.fft2(reshape_data)
+            fft_df = pd.DataFrame(fft_data)
+            #df = df.transpose()
+            # print(fft_df)
+
+            #print(len(reshape_data))
+            # print('DataShape %s :' % (str(data.shape)) + str(type(data)))
 
             for channel in self.eeg_channels:
                 # make filters work in place
@@ -51,7 +66,11 @@ def main():
     # dt.start()
     dt.run()
     try:
-        time.sleep(69)
+        # timeout = time.time() + 60 # run for 60 seconds
+        #
+        # while True:
+        time.sleep(60)
+
     except:
         dt.keep_alive = False
         dt.join()
