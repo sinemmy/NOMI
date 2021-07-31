@@ -8,6 +8,7 @@ from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
 from transmission import Comms as boardComm
 
+# testing to see if adding does anything
 
 class DataThread(threading.Thread):
 
