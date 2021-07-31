@@ -6,13 +6,17 @@ import keyboard
 import random
 import time
 #print(pyautogui.position()[0])
-from scipy import arange, cumsum, sin, linspace
-from scipy import pi as mpi
+from numpy import arange, cumsum, sin, linspace
+from numpy import pi
+import pandas as pd
 
-'''
+import brainflow
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+
 class MusicMaker:
     def __init__(self):
-
+        pass
     def generate_music(self, features):
         # features from signal_converter_ from
         pass
@@ -21,31 +25,38 @@ class MusicMaker:
 
     def testInstrument(self):
         pass
-'''
+
 
 class Theremin(MusicMaker):
-    infodict = {'fiddle1': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
-                            'amprange': 0.5},
-                'fiddle2': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
-                            'amprange': 0.5},
-                'sine': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 0.01, 'minamp': 0.1,
-                         'amprange': 0.5},
-                'trumpet    ': {'RATE': 44100,   'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 1.5441269841269842,
-                            'minamp': 0.1, 'amprange': 0.5}}
-    instrument = 'sine'
-    RATE = infodict[instrument]['RATE']  # Sampling frequency
-    CHUNK = infodict[instrument]['CHUNK']  # buffer
-    PITCH = infodict[instrument]['PITCH']  # pitch
-    minfreq = infodict[instrument]['PITCH'] / 2 * 2 ** (3 / 12)
-    tonerange = infodict[instrument]['tonerange']
-    period = infodict[instrument]['period']
-    minamp = infodict[instrument]['minamp']
-    amprange = infodict[instrument]['amprange'    def get_window_size():
-        window_size = pyautogui.size()
-        return window_size
+    """
+    Makes a Theremin to use for fun music making!
+    """
 
-    def distance():
-        window_size = get_window_size()
+    def __init__(self):
+
+        self.infodict = {'fiddle1': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
+                                'amprange': 0.5},
+                    'fiddle2': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
+                                'amprange': 0.5},
+                    'sine': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 0.01, 'minamp': 0.1,
+                             'amprange': 0.5},
+                    'trumpet    ': {'RATE': 44100,   'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 1.5441269841269842,
+                                'minamp': 0.1, 'amprange': 0.5}}
+        self.instrument = 'sine'
+        self.RATE = self.infodict[self.instrument]['RATE']  # Sampling frequency
+        self.CHUNK = self.infodict[self.instrument]['CHUNK']  # buffer
+        self.PITCH = self.infodict[self.instrument]['PITCH']  # pitch
+        self.minfreq = self.infodict[self.instrument]['PITCH'] / 2 * 2 ** (3 / 12)
+        self.tonerange = self.infodict[self.instrument]['tonerange']
+        self.period = self.infodict[self.instrument]['period']
+        self.minamp = self.infodict[self.instrument]['minamp']
+        self.amprange = self.infodict[self.instrument]['amprange']
+
+    def distance(self):
+        """
+        Gets the The x and y from the pyautogui
+        :return:
+        """
         x, y = pyautogui.position()
         # x_dist = np.sqrt((x-window_size.width/2)**2)
         # y_dist = abs(y-window_size.height)
@@ -56,7 +67,7 @@ class Theremin(MusicMaker):
         # return x_ratio, y_ratio
         return x, y
 
-    def tonemapping_eeg(freq_channel):
+    def tonemapping_eeg(self, freq_channel):
         # maybe series or arrays later
         # mult5 for instruments 15 for sine
         # ratio = distance()
@@ -64,13 +75,13 @@ class Theremin(MusicMaker):
         freq = abs(freq_channel) * 15
         return freq
 
-    def ampmapping_eeg(amp_channel):
+    def ampmapping_eeg(self, amp_channel):
         # ratio = distance()
         # amp = minamp+amprange*ratio[0]
-        amp = minamp + amprange * abs(amp_channel) / 2000
+        amp = self.minamp + self.amprange * abs(amp_channel) / 2000
         return amp
 
-    def make_time_varying_sine(start_freq, end_freq, start_A, end_A, fs, sec, phaze_start):
+    def make_time_varying_sine(self, start_freq, end_freq, start_A, end_A, fs, sec, phaze_start):
         freqs = linspace(start_freq, end_freq, num=int(round(fs * sec)))
         A = linspace(start_A, end_A, num=int(round(fs * sec)))
         phazes_diff = 2. * mpi * freqs / fs  # Amount of change in angular frequency
@@ -79,7 +90,7 @@ class Theremin(MusicMaker):
         ret = A * sin(phazes)  # Sine wave synthesis
         return ret, phaze_last
 
-    def varying_tone(wave_data, freq, amp, fs, sec):
+    def varying_tone(self, wave_data, freq, amp, fs, sec):
         relfreq = freq / 800
         relfreq += ((1 - relfreq) / 1.1)
         mult = relfreq // 1
@@ -89,16 +100,22 @@ class Theremin(MusicMaker):
         outdata = (df['data'][df['newmask']])
         return (amp * np.array(outdata), -
 
-    def play_eegaudio(df):
+    def play_eegaudio(self, df):
+        """
+        Plays audio, maybe from an eeg strean
+        :return:
+        """
         p = pyaudio.PyAudio()
         stream = p.open(format=pyaudio.paFloat32,
                         channels=1,
-                        rate=RATE,
-                        frames_per_buffer=CHUNK,
+                        rate=self.RATE,
+                        frames_per_buffer=self.CHUNK,
                         output=True)
         freq_old = minfreq
         amp_old = minamp
         phaze = 0
+
+        instrument = self.instrument
 
         for i in range(len(df)):
 
@@ -111,32 +128,33 @@ class Theremin(MusicMaker):
                     tone = make_time_varying_sine(freq_old, freq_new, amp_old, amp_new, infodict[instrument]['RATE'],
                                                   infodict[instrument]['period'], phaze)
                 elif instrument == 'fiddle1':
-                    tone = varying_tone(fiddle1_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
                 elif instrument == 'fiddle2':
                     tone = varying_tone(fiddle2_mod, freq_new, amp_new, infodict[instrument]['RATE'],
                                         infodict[instrument]['period'])
                 elif instrument == 'trumpet':
-                    tone = varying_tone(trumpet_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
 
-                play_wave(stream, tone[0])
+                self.play_wave(stream, tone[0])
                 freq_old = freq_new
                 amp_old = amp_new
                 phaze = tone[1]
             else:
                 time.sleep(1)
 
-    def play_eegaudio(df):
+    def playcumulative_eegaudio(self, df):
         p = pyaudio.PyAudio()
         stream = p.open(format=pyaudio.paFloat32,
                         channels=1,
-                        rate=RATE,
-                        frames_per_buffer=CHUNK,
+                        rate=self.RATE,
+                        frames_per_buffer=self.CHUNK,
                         output=True)
-        freq_old = minfreq
-        amp_old = minamp
+        freq_old = self.minfreq
+        amp_old = self.minamp
         phaze = 0
+        instrument = self.instrument
 
         counter = 0
         for i in range(len(df)):
@@ -149,27 +167,27 @@ class Theremin(MusicMaker):
                 cumsum_amps.append(df['ABS(AF)SUM'].values[i])
                 cumsum_freqs.append(df['ABS(TP)SUM'].values[i])
                 if counter >= 5:
-                    amp_new = ampmapping_eeg(np.array(cumsum_amps).mean())
-                    freq_new = tonemapping_eeg(np.array(cumsum_freqs).mean())
+                    amp_new = self.ampmapping_eeg(np.array(cumsum_amps).mean())
+                    freq_new = self.tonemapping_eeg(np.array(cumsum_freqs).mean())
                 else:
-                    amp_new = ampmapping_eeg(df['ABS(AF)SUM'].values[i])
-                    freq_new = tonemapping_eeg(df['ABS(TP)SUM'].values[i])
+                    amp_new = self.ampmapping_eeg(df['ABS(AF)SUM'].values[i])
+                    freq_new = self.tonemapping_eeg(df['ABS(TP)SUM'].values[i])
                 print(freq_new, amp_new)
                 if instrument == 'sine':
 
-                    tone = make_time_varying_sine(freq_old, freq_new, amp_old, amp_new, infodict[instrument]['RATE'],
-                                                  infodict[instrument]['period'], phaze)
+                    tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new, self.infodict[instrument]['RATE'],
+                                                  self.infodict[instrument]['period'], phaze)
                 elif instrument == 'fiddle1':
-                    tone = varying_tone(fiddle1_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
                 elif instrument == 'fiddle2':
-                    tone = varying_tone(fiddle2_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
                 elif instrument == 'trumpet':
-                    tone = varying_tone(trumpet_mod, freq_new, amp_new, infodict[instrument]['RATE'],
-                                        infodict[instrument]['period'])
+                    tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[instrument]['RATE'],
+                                        self.infodict[instrument]['period'])
 
-                play_wave(stream, tone[0])
+                self.play_wave(stream, tone[0])
                 freq_old = freq_new
                 amp_old = amp_new
                 phaze = tone[1]
@@ -178,16 +196,28 @@ class Theremin(MusicMaker):
             else:
                 time.sleep(1)
 
-    play_eegaudio(df)
-
-    def ampmapping_eeg(amp_channel):
+    def ampmapping_eeg(self, amp_channel):
         # ratio = distance()
         # amp = minamp+amprange*ratio[0]
-        amp = minamp + amprange * distance()[0] / 2000
+        amp = self.minamp + self.amprange * self.distance()[0] / 2000
         return amp
-
-    ampmapping_eeg(365)
 
 
     def testInstrument(self):
         pass
+
+if __name__ == "__main__":
+    # RUN YOUR CODE HERE
+    myTheremin = Theremin()
+
+    restored_data = DataFilter.read_file('myNEWData.csv')
+    df = pd.DataFrame(np.transpose(restored_data))
+    # with open('myNEWData.csv') as f:
+    #     packagepackage = f.read()
+
+    df2 = pd.DataFrame(np.transpose(df))
+
+    myTheremin.play_eegaudio(df2)
+    time.sleep(20)
+    myTheremin.playcumulative_eegaudio(df)
+
