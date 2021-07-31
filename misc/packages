@@ -12,3 +12,4 @@ mne
 keyboard
 ray
 pylsl
+pyaudio

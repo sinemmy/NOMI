@@ -58,9 +58,6 @@ class Comms:
     def getData(self):
         return self.board.get_board_data()
 
-    def getMostRecentData(self, num_samples: int):
-        return self.board.get_current_board_data(num_samples)
-
     def getCurrentData(self, num_samples: int):
         return self.board.get_current_board_data(num_samples)
 
