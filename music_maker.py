@@ -14,61 +14,62 @@ import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
-class MusicMaker:
-    def __init__(self):
-        pass
-    def generate_music(self, features):
-        # features from signal_converter_ from
-        pass
-    def play_sound(self):
-        pass
+# class MusicMaker:
+#     def __init__(self):
+#         pass
+#     def generate_music(self, features):
+#         # features from signal_converter_ from
+#         pass
+#     def play_sound(self):
+#         pass
 
-    def play_audio(self):
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paFloat32,
-                        channels=1,
-                        rate=self.RATE,
-                        frames_per_buffer=self.CHUNK,
-                        output=True)
-        freq_old = self.minfreq
-        amp_old = self.minamp
-        phaze = 0
+#
+#     def play_audio(self):
+#         p = pyaudio.PyAudio()
+#         stream = p.open(format=pyaudio.paFloat32,
+#                         channels=1,
+#                         rate=self.RATE,
+#                         frames_per_buffer=self.CHUNK,
+#                         output=True)
+#         freq_old = self.minfreq
+#         amp_old = self.minamp
+#         phaze = 0
+#
+#         while True:
+#             try:
+#                 if keyboard.is_pressed('q'):
+#                     stream.close()
+#                     break  # finishing the loop
+#                 else:
+#                     freq_new = self.tonemapping()
+#                     amp_new = self.ampmapping()
+#                     if self.instrument == 'sine':
+#
+#                         tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new,
+#                                                       self.infodict[self.instrument]['RATE'], self.infodict[self.instrument]['period'],
+#                                                       phaze)
+#                     elif self.instrument == 'fiddle1':
+#                         tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+#                                             self.infodict[self.instrument]['period'])
+#                     elif self.instrument == 'fiddle2':
+#                         tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+#                                             self.infodict[self.instrument]['period'])
+#                     elif self.instrument == 'trumpet':
+#                         tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
+#                                             self.infodict[self.instrument]['period'])
+#
+#                     self.play_wave(stream, tone[0])
+#                     freq_old = freq_new
+#                     amp_old = amp_new
+#                     phaze = tone[1]
+#             except:
+#                 continue
+#
+#     def testInstrument(self):
+#         pass
 
-        while True:
-            try:
-                if keyboard.is_pressed('q'):
-                    stream.close()
-                    break  # finishing the loop
-                else:
-                    freq_new = self.tonemapping()
-                    amp_new = self.ampmapping()
-                    if self.instrument == 'sine':
 
-                        tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new,
-                                                      self.infodict[self.instrument]['RATE'], self.infodict[self.instrument]['period'],
-                                                      phaze)
-                    elif self.instrument == 'fiddle1':
-                        tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-                                            self.infodict[self.instrument]['period'])
-                    elif self.instrument == 'fiddle2':
-                        tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-                                            self.infodict[self.instrument]['period'])
-                    elif self.instrument == 'trumpet':
-                        tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-                                            self.infodict[self.instrument]['period'])
-
-                    play_wave(stream, tone[0])
-                    freq_old = freq_new
-                    amp_old = amp_new
-                    phaze = tone[1]
-            except:
-                continue
-
-    def testInstrument(self):
-        pass
-
-
-class Theremin(MusicMaker):
+class Theremin:
     """
     Makes a Theremin to use for fun music making!
     """
