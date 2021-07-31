@@ -1,0 +1,11 @@
+brainflow
+numpy
+scipy
+PyQt5
+setuptools
+pyqt-tools
+PyAutoGUI
+pandas
+matplotlib
+mne
+keyboard
