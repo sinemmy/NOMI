@@ -194,7 +194,7 @@ class Theremin(MusicMaker):
                 counter += 1
                 strcounter = str(counter)
             else:
-                time.sleep(1)
+                time.sleep
 
     def ampmapping_eeg(self, amp_channel):
         # ratio = distance()
