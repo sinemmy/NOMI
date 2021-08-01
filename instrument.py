@@ -1,40 +1,67 @@
+
+'''
+ Instrument(RATE=[], CHUNK=[], PITCH=[], tonerange=[], period=[], minamp=[],amprange=[] )
+'''
 class Theremin(Instrument):
-    pass
+    def make_tone(self, freq_old, freq_new, amp_old, amp_new):
+        # make_time_varying_sine
+         pass
 
 class Trumpet(Instrument):
         self.period = 1.54
         self.minamp = 0.1
+        def make_tone(self, freq_old, freq_new, amp_old, amp_new):
+            # self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'], self.infodict[self.instrument]['period'])
 
-class Fiddle(Instrument):
-        self.
-
-
-        self.infodict = {'fiddle1': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
-                                'amprange': 0.5},
-                    'fiddle2': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 2.06, 'minamp': 0.1,
-                                'amprange': 0.5},
-                    'sine': {'RATE': 44100, 'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 0.01, 'minamp': 0.1,
-                             'amprange': 0.5},
-                    'trumpet    ': {'RATE': 44100,   'CHUNK': 1024, 'PITCH': 442, 'tonerange': 2, 'period': 1.5441269841269842,
-                                'minamp': 0.1, 'amprange': 0.5}}
-        self.instrument = 'sine'
-        self.RATE = self.infodict[self.instrument]['RATE']  # Sampling frequency
-        self.CHUNK = self.infodict[self.instrument]['CHUNK']  # buffer
-        self.PITCH = self.infodict[self.instrument]['PITCH']  # pitch
-        self.minfreq = self.infodict[self.instrument]['PITCH'] / 2 * 2 ** (3 / 12)
-        self.tonerange = self.infodict[self.instrument]['tonerange']
-        self.period = self.infodict[self.instrument]['period']
-        self.minamp = self.infodict[self.instrument]['minamp']
-        self.amprange = self.infodict[self.instrument]['amprange']
+class TimeVaryingInstrument(Instrument):
+    def make_tone(self, freq_old, freq_new, amp_old, amp_new):
+        ## COULD MAKE TIME VARYING SINE HERE ##
 
 
 class Instrument:
     # theremin is default
-    def __init__(self, RATE=[], CHUNK=[], PITCH=[], tonerange=[], period=[], minamp=[],amprange=[] ):
+    # how do you do optional arguments ?
+    def __init__(self, RATE= (), CHUNK = () PITCH=(), tonerange=(), period=(), minamp=(),amprange=() ):
         self.RATE = 44100 # for pyaudio
         self.CHUNK = 1024 # for pyaudio
         self.PITCH = 442 # for pyaudio
         self.tonerange = 2  
         self.period = 0.01
-        self.minamp=0.1
-        self.amprange=0.5
+        self.minamp = 0.1
+        self.amprange = 0.5''
+
+    def make_tone(self, freq_old, freq_new, amp_old, amp_new):
+        # This was time-varying-sine or varying-tone before
+        pass
+
+    def play_wave(self,stream, samples):
+        stream.write(samples.astype(np.float32).tostring())
+
+    def play_audio(self):
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paFloat32,
+                        channels=1,
+                        rate=self.RATE,
+                        frames_per_buffer=self.CHUNK,
+                        output=True)
+        freq_old = self.minfreq
+        amp_old = self.minamp
+        phaze = 0
+
+        while True:
+            try:
+                if keyboard.is_pressed('q'):
+                    stream.close()
+                    break  # finishing the loop
+                else:
+                    freq_new = self.tonemapping()
+                    amp_new = self.ampmapping()
+
+                    tone = self.make_tone(freq_old, freq_new, amp_old, amp_new)
+
+                    self.play_wave(stream, tone[0])
+                    freq_old = freq_new
+                    amp_old = amp_new
+                    phaze = tone[1]
+            except:
+                continue
