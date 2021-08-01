@@ -14,36 +14,39 @@ from brainflow.ml_model import MLModel, BrainFlowMetrics, BrainFlowClassifiers, 
 
 from transmission import Comms as boardComm
 
-def predictFromEEG(data, channels, samplingrate, concentrationOrRelaxation=0 ):
 
-    def initialize_metrics(concentrationOrRelaxation) :
-        # 0 for relaxation, 1 for concentration
-        if concentrationOrRelaxation not in [0,1]:
-            print('Please input 0 for relaxation and 1 for concentration')
-            return
 
-        if concentrationOrRelaxation == 0: # relaxation
-            state_params =  BrainFlowModelParams(BrainFlowMetrics.CONCENTRATION.value, BrainFlowClassifiers.REGRESSION.value)
-            # note in the example they used KNN not REGRESSION but in the widget, they use regression
-        else:
-            state_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value, BrainFlowClassifiers.REGRESSION.value)
 
-        brainstate_model  = MLModel(state_params)
-        brainstate_model.prepare()
-        return brainstate_model
-
-    # get band powers
-    bands = DataFilter.get_avg_band_powers(data, channels, samplingrate, True)
-    feature_vector = np.concatenate((bands[0], bands[1]))
-
-    mymodel = initialize_metrics(concentrationOrRelaxation)
-    prediction = mymodel.predict(feature_vector)
-
-    # should be at the end of the processes
-    mymodel.release()
-
-    return prediction
-
+# def predictFromEEG(data, channels, samplingrate, concentrationOrRelaxation=0 ):
+#
+#     def initialize_metrics(concentrationOrRelaxation) :
+#         # 0 for relaxation, 1 for concentration
+#         if concentrationOrRelaxation not in [0,1]:
+#             print('Please input 0 for relaxation and 1 for concentration')
+#             return
+#
+#         if concentrationOrRelaxation == 0: # relaxation
+#             state_params =  BrainFlowModelParams(BrainFlowMetrics.CONCENTRATION.value, BrainFlowClassifiers.REGRESSION.value)
+#             # note in the example they used KNN not REGRESSION but in the widget, they use regression
+#         else:
+#             state_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value, BrainFlowClassifiers.REGRESSION.value)
+#
+#         brainstate_model  = MLModel(state_params)
+#         brainstate_model.prepare()
+#         return brainstate_model
+#
+#     # get band powers
+#     bands = DataFilter.get_avg_band_powers(data, channels, samplingrate, True)
+#     feature_vector = np.concatenate((bands[0], bands[1]))
+#
+#     mymodel = initialize_metrics(concentrationOrRelaxation)
+#     prediction = mymodel.predict(feature_vector)
+#
+#     # should be at the end of the processes
+#     mymodel.release()
+#
+#     return prediction
+#
 
 class DataThread(threading.Thread):
 
@@ -57,7 +60,45 @@ class DataThread(threading.Thread):
 
         self.keep_alive = True
 
-    def run(self):
+    def prepare_model(self, concentrationOrRelaxation=0):
+        if concentrationOrRelaxation not in [0, 1]:
+            print('Please input 0 for relaxation and 1 for concentration')
+            return
+
+        if concentrationOrRelaxation == 0:  # relaxation
+            state_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value,
+                                                BrainFlowClassifiers.REGRESSION.value)
+            my_params = (state_params)
+            # note in the example they used KNN not REGRESSION but in the widget, they use regression
+        else:
+            state_params = BrainFlowModelParams(BrainFlowMetrics.CONCENTRATION.value,
+                                                BrainFlowClassifiers.REGRESSION.value)
+
+        brainstate_model = MLModel(state_params)
+        brainstate_model.prepare()
+        return brainstate_model
+
+    def predict_from_model(self, feature_vector, mymodel):
+        # get band powers
+        prediction = mymodel.predict(feature_vector)
+        return prediction
+
+    def release_model(self, mymodel):
+        mymodel.release()
+
+    def run(self, concentrationOrRelaxation=0):
+        if concentrationOrRelaxation not in [0, 1]:
+            print('Please pick concentration or relaxation model. \n '
+                   '0: Relaxation \n'
+                   '1: Concentration \n'
+                   'Default is (0) Relaxation')
+            return
+
+
+        modelString = ('Relaxation', 'Concentration')
+        print(f"Preparing model for {modelString[concentrationOrRelaxation]}")
+        brain_state_model = self.prepare_model(concentrationOrRelaxation)
+
         win_size = 20
         sleeptime = 1
         points_per_update = win_size * self.samplingRate
@@ -99,11 +140,17 @@ class DataThread(threading.Thread):
 
             # USING BRAINFLOW'S RELAXATION/CONCENTRATION ML PREDICTION
             # They recommend 4s of data
-            relaxationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate)
-            print(f"Relaxation prediction: {relaxationPrediction}")
+            bands = DataFilter.get_avg_band_powers(data, self.eeg_channels, self.samplingRate, True)
+            feature_vector = np.concatenate((bands[0], bands[1]))
 
-            concentrationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate, 1)
-            print(f"Concentration prediction: {concentrationPrediction}")
+            brain_state_prediction = self.predict_from_model(feature_vector, brain_state_model)
+            print(f"{modelString[concentrationOrRelaxation]} prediction: {brain_state_prediction}")
+
+            # relaxationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate)
+            # concentrationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate, 1)
+            #print(f"Concentration prediction: {concentrationPrediction}")
+
+
 
             for channel in self.eeg_channels[0:7]:
 
@@ -131,6 +178,9 @@ class DataThread(threading.Thread):
                 outputFile = open("output.txt", "w")
                 outputFile.write('[' + str(time.time()) + '] Alpha: ' +  str(band_power_alpha) + 'Beta: ' + str(band_power_beta) + '\n  ')
                 print("alpha/beta:%f", band_power_alpha / band_power_beta )
+
+        # releasing model at the end
+        self.release_model(brain_state_model)
             # print(fftData)
 
 
@@ -141,7 +191,11 @@ def main():
     newBoard.startStream()
     dt = DataThread(newBoard)
     # dt.start()
-    dt.run()
+
+    # 1 for concentration, 0 for relaxation
+    concentrationOrRelaxation = 1
+
+    dt.run(concentrationOrRelaxation)
     try:
         # timeout = time.time() + 60 # run for 60 seconds
         #
