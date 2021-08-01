@@ -91,18 +91,19 @@ class DataThread(threading.Thread):
             nfft = DataFilter.get_nearest_power_of_two(self.samplingRate)
             myLen = len(data)
             sizeB = data.size
-            shapeOfYou = data.shape
+            shapeOfYou = data.shapes
             print(nfft)
             print(len(data))
             print(data.size)
             # time.sleep(20)
 
             # USING BRAINFLOW'S RELAXATION/CONCENTRATION ML PREDICTION
+            # They recommend 4s of data
             relaxationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate)
-            print(f"Relaxation prediction: {relaxationPrecition}")
+            print(f"Relaxation prediction: {relaxationPrediction}")
 
             concentrationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate, 1)
-            print(f"Concentration prediction: {concentrationPrecition}")
+            print(f"Concentration prediction: {concentrationPrediction}")
 
             for channel in self.eeg_channels[0:7]:
 
