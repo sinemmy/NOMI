@@ -14,7 +14,7 @@ from brainflow.ml_model import MLModel, BrainFlowMetrics, BrainFlowClassifiers, 
 
 from transmission import Comms as boardComm
 
-def EEGmetrics(data, channels, samplingrate, concentrationOrRelaxation=0 ):
+def predictFromEEG(data, channels, samplingrate, concentrationOrRelaxation=0 ):
 
     def initialize_metrics(concentrationOrRelaxation) :
         # 0 for relaxation, 1 for concentration
@@ -29,7 +29,7 @@ def EEGmetrics(data, channels, samplingrate, concentrationOrRelaxation=0 ):
             state_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value, BrainFlowClassifiers.REGRESSION.value)
 
         brainstate_model  = MLModel(state_params)
-        mymodel.prepare()
+        brainstate_model.prepare()
         return brainstate_model
 
     # get band powers
@@ -42,6 +42,7 @@ def EEGmetrics(data, channels, samplingrate, concentrationOrRelaxation=0 ):
     # should be at the end of the processes
     mymodel.release()
 
+    return prediction
 
 
 class DataThread(threading.Thread):
@@ -95,6 +96,13 @@ class DataThread(threading.Thread):
             print(len(data))
             print(data.size)
             # time.sleep(20)
+
+            # USING BRAINFLOW'S RELAXATION/CONCENTRATION ML PREDICTION
+            relaxationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate)
+            print(f"Relaxation prediction: {relaxationPrecition}")
+
+            concentrationPrediction = predictFromEEG(data, self.eeg_channels, self.samplingRate, 1)
+            print(f"Concentration prediction: {concentrationPrecition}")
 
             for channel in self.eeg_channels[0:7]:
 
