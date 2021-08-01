@@ -3,25 +3,28 @@ import brainflow
 import numpy as np
 import threading
 
+
+import pandas as pd
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions, DetrendOperations
 
 from transmission import Comms as boardComm
 
 
 class DataThread(threading.Thread):
 
-    def __init__(self, board: boardComm, boardID: int):
+    def __init__(self, myBoardComm: boardComm):
         threading.Thread.__init__(self)
-        self.myBoard = board
-        self.myBoard.setBoard(boardID)
+        self.myBoard = myBoardComm
+        # self.myBoard = boardComm(boardID)
+        # self.myBoard.setBoard(boardID)
         self.eeg_channels = self.myBoard.getEEGChannels()
         self.samplingRate = self.myBoard.get_samplingRate()
 
         self.keep_alive = True
 
     def run(self):
-        win_size = 5
+        win_size = 20
         sleeptime = 1
         points_per_update = win_size * self.samplingRate
         print("length eeg channels: ",len(self.eeg_channels))
@@ -29,18 +32,24 @@ class DataThread(threading.Thread):
         while self.keep_alive:
             time.sleep(sleeptime)
 
+
             # get the board data ; doesnt remove data from the internal buffer
             data = self.myBoard.getCurrentData(int(points_per_update))
-            print(data)
-            print('ppu: ',points_per_update)
-            reshape_data = data.T
-            print(reshape_data.shape, data.shape)
+
+            if data.shape[1] < 2000:
+                print(data.shape)
+                continue
+            # data = self.myBoard
+            #print(data)
+            #print('ppu: ',points_per_update)
+            #reshape_data = data.T
+            #print(reshape_data.shape, data.shape)
 
             df = pd.DataFrame(reshape_data)
             fft_data = np.fft.fft2(reshape_data)
             fft_df = pd.DataFrame(fft_data)
             #df = df.transpose()
-            # print(fft_df)
+            #print(df.values[0],df.values[2])
 
             #print(len(reshape_data))
             # print('DataShape %s :' % (str(data.shape)) + str(type(data)))
@@ -59,10 +68,10 @@ class DataThread(threading.Thread):
 
 def main():
     BoardShim.enable_dev_board_logger()
-    newBoard = boardComm()  # make a new board
+    newBoard = boardComm(-1)  # make a new board
 
     newBoard.startStream()
-    dt = DataThread(newBoard, -1)
+    dt = DataThread(newBoard)
     # dt.start()
     dt.run()
     try:

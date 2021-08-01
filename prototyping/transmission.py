@@ -26,6 +26,22 @@ class Comms:
         myCytonSerialPort = 'COM3'
         noSerial = ''
 
+    def __init__(self, boardID):
+        # self.data = []
+        self.isRunning = False
+        self.myBoardID = boardID
+        BoardShim.enable_dev_board_logger()
+        params = BrainFlowInputParams()
+
+        # Board IDS
+        SYNTH_BOARD = int(-1)
+        CYTON = int(0)
+        MUSE2 = int(22)
+
+        # Ports
+        myCytonSerialPort = 'COM3'
+        noSerial = ''
+
     def startStream(self):
         """
 
@@ -39,10 +55,13 @@ class Comms:
         CYTON = int(0)
         MUSE2 = int(22)
 
-        myCytonSerialPort = 'COM3'
-        noSerial = ''
+        if self.myBoardID == 0:
+            serial = 'COM3'
+        else:
 
-        params.serial_port = noSerial
+            serial = ''
+
+        params.serial_port = serial
 
         # create our board
         self.board = BoardShim(SYNTH_BOARD, params)
