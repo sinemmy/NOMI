@@ -8,7 +8,40 @@ import pandas as pd
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions, DetrendOperations
 
+from brainflow.ml_model import MLModel, BrainFlowMetrics, BrainFlowClassifiers, BrainFlowModelParams
+
+
+
 from transmission import Comms as boardComm
+
+def EEGmetrics(data, channels, samplingrate, concentrationOrRelaxation=0 ):
+
+    def initialize_metrics(concentrationOrRelaxation) :
+        # 0 for relaxation, 1 for concentration
+        if concentrationOrRelaxation not in [0,1]
+            print('Please input 0 for relaxation and 1 for concentration')
+            return
+
+        if concentrationOrRelaxation == 0: # relaxation
+            state_params =  BrainFlowModelParams(BrainFlowMetrics.CONCENTRATION.value, BrainFlowClassifiers.REGRESSION.value)
+            # note in the example they used KNN not REGRESSION but in the widget, they use regression
+        else:
+            state_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value, BrainFlowClassifiers.REGRESSION.value)
+
+        brainstate_model  = MLModel(state_params)
+        mymodel.prepare()
+        return brainstate_model
+
+    # get band powers
+    bands = DataFilter.get_avg_band_powers(data, channels, samplingrate, True)
+    feature_vector = np.concatenate((bands[0], bands[1]))
+
+    mymodel = initialize_metrics(concentrationOrRelaxation)
+    prediction = mymodel.predict(feature_vector)
+
+    # should be at the end of the processes
+    mymodel.release()
+
 
 
 class DataThread(threading.Thread):
