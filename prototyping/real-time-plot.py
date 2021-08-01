@@ -13,7 +13,7 @@ from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, Window
 
 class Graph:
     def __init__(self, board_shim):
-        self.board_id = board_shim.get_board_id()
+        self.board_id = 0
         self.board_shim = board_shim
         self.exg_channels = BoardShim.get_exg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
@@ -51,7 +51,6 @@ class Graph:
 
     def update(self):
         data = self.board_shim.get_current_board_data(self.num_points)
-        avg_bands = [0, 0, 0, 0, 0]
         for count, channel in enumerate(self.exg_channels):
             # plot time series
             DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
@@ -86,13 +85,13 @@ def main():
     parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards',
-                        required=False, default=BoardIds.SYNTHETIC_BOARD)
+                        required=False, default=0)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
     args = parser.parse_args()
 
     params = BrainFlowInputParams()
     params.ip_port = args.ip_port
-    params.serial_port = args.serial_port
+    params.serial_port = 'COM3'
     params.mac_address = args.mac_address
     params.other_info = args.other_info
     params.serial_number = args.serial_number
