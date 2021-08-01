@@ -18,7 +18,7 @@ def predictFromEEG(data, channels, samplingrate, concentrationOrRelaxation=0 ):
 
     def initialize_metrics(concentrationOrRelaxation) :
         # 0 for relaxation, 1 for concentration
-        if concentrationOrRelaxation not in [0,1]
+        if concentrationOrRelaxation not in [0,1]:
             print('Please input 0 for relaxation and 1 for concentration')
             return
 
@@ -91,7 +91,7 @@ class DataThread(threading.Thread):
             nfft = DataFilter.get_nearest_power_of_two(self.samplingRate)
             myLen = len(data)
             sizeB = data.size
-            shapeOfYou = data.shapes
+            shapeOfYou = data.shape
             print(nfft)
             print(len(data))
             print(data.size)
