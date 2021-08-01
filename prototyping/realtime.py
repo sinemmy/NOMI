@@ -99,7 +99,7 @@ class DataThread(threading.Thread):
         print(f"Preparing model for {modelString[concentrationOrRelaxation]}")
         brain_state_model = self.prepare_model(concentrationOrRelaxation)
 
-        win_size = 20
+        win_size = 5
         sleeptime = 1
         points_per_update = win_size * self.samplingRate
         print("length eeg channels: ",len(self.eeg_channels))
@@ -111,7 +111,7 @@ class DataThread(threading.Thread):
             # get the board data ; doesnt remove data from the internal buffer
             data = self.myBoard.getCurrentData(int(points_per_update))
 
-            if data.shape[1] < 2000:
+            if data.shape[1] < points_per_update:
                 print(data.shape)
                 continue
             # data = self.myBoard
@@ -129,14 +129,14 @@ class DataThread(threading.Thread):
             #print(len(reshape_data))
             # print('DataShape %s :' % (str(data.shape)) + str(type(data)))
 
-            nfft = DataFilter.get_nearest_power_of_two(self.samplingRate)
-            myLen = len(data)
-            sizeB = data.size
-            shapeOfYou = data.shape
-            print(nfft)
-            print(len(data))
-            print(data.size)
-            # time.sleep(20)
+            # nfft = DataFilter.get_nearest_power_of_two(self.samplingRate)
+            # myLen = len(data)
+            # sizeB = data.size
+            # shapeOfYou = data.shape
+            # print(nfft)
+            # print(len(data))
+            # print(data.size)
+            # # time.sleep(20)
 
             # USING BRAINFLOW'S RELAXATION/CONCENTRATION ML PREDICTION
             # They recommend 4s of data
@@ -152,32 +152,32 @@ class DataThread(threading.Thread):
 
 
 
-            for channel in self.eeg_channels[0:7]:
-
-                # make filters work in place
-                # fftData = DataFilter.perform_fft(data[channel], 2)
-                # DataFilter.perform_bandstop(data[channel], self.samplingRate, 50.0, 4.0, 4,
-                #                             FilterTypes.BUTTERWORTH.value, 0)  # bandstop 48-52
-                # DataFilter.perform_bandstop(data[channel], self.samplingRate, 60.0, 4.0, 4,
-                #                             FilterTypes.BUTTERWORTH.value, 0)  # bandstop 58 - 62
-                # DataFilter.perform_bandpass(data[channel], self.samplingRate, 21.0, 20.0, 4,
-                #                             FilterTypes.BESSEL.value, 0)  # bandpass 11 - 31
-
-                # DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
-                # DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
-                DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEDIAN.value)
-                DataFilter.perform_lowpass(data[channel], self.samplingRate, 50.0, 5,
-                                           FilterTypes.CHEBYSHEV_TYPE_1.value, 1)
-
-                psd = DataFilter.get_psd_welch(data[channel], nfft, nfft // 2, self.samplingRate,
-                                               WindowFunctions.BLACKMAN_HARRIS.value)
-
-                band_power_alpha = DataFilter.get_band_power(psd, 7.0, 13.0)
-                band_power_beta = DataFilter.get_band_power(psd, 14.0, 30.0)
-
-                outputFile = open("output.txt", "w")
-                outputFile.write('[' + str(time.time()) + '] Alpha: ' +  str(band_power_alpha) + 'Beta: ' + str(band_power_beta) + '\n  ')
-                print("alpha/beta:%f", band_power_alpha / band_power_beta )
+            # for channel in self.eeg_channels[0:7]:
+            #
+            #     # make filters work in place
+            #     # fftData = DataFilter.perform_fft(data[channel], 2)
+            #     # DataFilter.perform_bandstop(data[channel], self.samplingRate, 50.0, 4.0, 4,
+            #     #                             FilterTypes.BUTTERWORTH.value, 0)  # bandstop 48-52
+            #     # DataFilter.perform_bandstop(data[channel], self.samplingRate, 60.0, 4.0, 4,
+            #     #                             FilterTypes.BUTTERWORTH.value, 0)  # bandstop 58 - 62
+            #     # DataFilter.perform_bandpass(data[channel], self.samplingRate, 21.0, 20.0, 4,
+            #     #                             FilterTypes.BESSEL.value, 0)  # bandpass 11 - 31
+            #
+            #     # DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
+            #     # DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
+            #     DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEDIAN.value)
+            #     DataFilter.perform_lowpass(data[channel], self.samplingRate, 50.0, 5,
+            #                                FilterTypes.CHEBYSHEV_TYPE_1.value, 1)
+            #
+            #     psd = DataFilter.get_psd_welch(data[channel], nfft, nfft // 2, self.samplingRate,
+            #                                    WindowFunctions.BLACKMAN_HARRIS.value)
+            #
+            #     band_power_alpha = DataFilter.get_band_power(psd, 7.0, 13.0)
+            #     band_power_beta = DataFilter.get_band_power(psd, 14.0, 30.0)
+            #
+            #     outputFile = open("output.txt", "w")
+            #     outputFile.write('[' + str(time.time()) + '] Alpha: ' +  str(band_power_alpha) + 'Beta: ' + str(band_power_beta) + '\n  ')
+            #     print("alpha/beta:%f", band_power_alpha / band_power_beta )
 
         # releasing model at the end
         self.release_model(brain_state_model)
