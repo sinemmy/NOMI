@@ -22,48 +22,6 @@ from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 #         pass
 #     def play_sound(self):
 #         pass
-
-#
-#     def play_audio(self):
-#         p = pyaudio.PyAudio()
-#         stream = p.open(format=pyaudio.paFloat32,
-#                         channels=1,
-#                         rate=self.RATE,
-#                         frames_per_buffer=self.CHUNK,
-#                         output=True)
-#         freq_old = self.minfreq
-#         amp_old = self.minamp
-#         phaze = 0
-#
-#         while True:
-#             try:
-#                 if keyboard.is_pressed('q'):
-#                     stream.close()
-#                     break  # finishing the loop
-#                 else:
-#                     freq_new = self.tonemapping()
-#                     amp_new = self.ampmapping()
-#                     if self.instrument == 'sine':
-#
-#                         tone = self.make_time_varying_sine(freq_old, freq_new, amp_old, amp_new,
-#                                                       self.infodict[self.instrument]['RATE'], self.infodict[self.instrument]['period'],
-#                                                       phaze)
-#                     elif self.instrument == 'fiddle1':
-#                         tone = self.varying_tone(self.fiddle1_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-#                                             self.infodict[self.instrument]['period'])
-#                     elif self.instrument == 'fiddle2':
-#                         tone = self.varying_tone(self.fiddle2_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-#                                             self.infodict[self.instrument]['period'])
-#                     elif self.instrument == 'trumpet':
-#                         tone = self.varying_tone(self.trumpet_mod, freq_new, amp_new, self.infodict[self.instrument]['RATE'],
-#                                             self.infodict[self.instrument]['period'])
-#
-#                     self.play_wave(stream, tone[0])
-#                     freq_old = freq_new
-#                     amp_old = amp_new
-#                     phaze = tone[1]
-#             except:
-#                 continue
 #
 #     def testInstrument(self):
 #         pass
@@ -114,7 +72,7 @@ class Theremin:
         # mult5 for instruments 15 for sine
         # ratio = distance()
         # freq = minfreq*2**(tonerange*ratio[1])
-        freq = abs(freq_channel) * 15
+        freq = abs(freq_channel) * 5
         return freq
 
     def ampmapping_eeg(self, amp_channel):
@@ -248,13 +206,13 @@ class Theremin:
         # ratio = distance()
         # freq = minfreq+(tonerange*ratio[1])
         # freq = minfreq*2**(tonerange*ratio[1])
-        freq = self.distance()[1] * 5
+        freq = self.distance()[1]
         return freq
 
     def ampmapping(self):
         # ratio = distance()
         # amp = minamp+amprange*ratio[0]
-        amp = self.minamp + amprange * distance()[0] / 1000
+        amp = self.minamp + self.amprange * self.distance()[0] / 1000
         return amp
 
     def play_wave(self,stream, samples):

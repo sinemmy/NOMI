@@ -51,7 +51,6 @@ class Graph:
 
     def update(self):
         data = self.board_shim.get_current_board_data(self.num_points)
-        avg_bands = [0, 0, 0, 0, 0]
         for count, channel in enumerate(self.exg_channels):
             # plot time series
             DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
